@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Making Streaming Seamless — Ron Cueto</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --deep-navy:  #162347;
+      --slate:      #334B70;
+      --steel-blue: #4C6FA5;
+      --cool-gray:  #8E97A6;
+      --off-white:  #F4F6FA;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--off-white);
+      color: var(--deep-navy);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Playfair Display', serif; letter-spacing: -0.03em; }
+
+    .grain { position: relative; }
+    .grain::after {
+      content: ''; position: absolute; inset: 0;
+      pointer-events: none; z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23g)' opacity='0.055'/%3E%3C/svg%3E");
+      background-size: 320px;
+    }
+
+    .container      { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+    .container-text { max-width: 760px;  margin: 0 auto; padding: 0 32px; }
+
+    .nav-link {
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+      color: var(--slate); text-decoration: none; position: relative;
+      padding-bottom: 2px; transition: color 180ms ease;
+    }
+    .nav-link::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      width: 0; height: 1.5px; background: var(--steel-blue);
+      transition: width 220ms cubic-bezier(.34,1.56,.64,1);
+    }
+    .nav-link:hover { color: var(--deep-navy); }
+    .nav-link:hover::after { width: 100%; }
+    .nav-link:focus-visible { outline: 2px solid var(--steel-blue); outline-offset: 3px; border-radius: 2px; }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 26px; background: var(--deep-navy); color: var(--off-white);
+      font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px;
+      border-radius: 8px; text-decoration: none; border: none; cursor: pointer;
+      transition: transform 220ms cubic-bezier(.34,1.56,.64,1), box-shadow 220ms ease;
+      box-shadow: 0 4px 18px rgba(22,35,71,.22);
+    }
+    .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(22,35,71,.30); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:focus-visible { outline: 2px solid var(--steel-blue); outline-offset: 3px; }
+
+    .eyebrow { font-family:'Inter',sans-serif; font-size:12px; font-weight:500; color:var(--steel-blue); text-transform:uppercase; letter-spacing:.10em; }
+
+    .section-num {
+      font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 700;
+      color: rgba(22,35,71,.05); line-height: 1; letter-spacing: -0.04em;
+      user-select: none; pointer-events: none;
+    }
+
+    .metric-card {
+      background: white; border-radius: 16px; padding: 32px;
+      border: 1px solid rgba(22,35,71,.07);
+      box-shadow: 0 4px 16px rgba(22,35,71,.08), 0 1px 4px rgba(22,35,71,.04);
+    }
+
+    .img-frame {
+      background: #E8ECF2; border-radius: 16px; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(22,35,71,.14), 0 2px 8px rgba(22,35,71,.08);
+    }
+    .img-frame-dark {
+      background: #0d1117; border-radius: 16px; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,.34), 0 2px 8px rgba(0,0,0,.18);
+    }
+
+    .callout {
+      border-left: 3px solid var(--steel-blue);
+      padding: 20px 24px; background: rgba(76,111,165,.06);
+      border-radius: 0 12px 12px 0;
+    }
+
+    /* Breakpoint pill */
+    .bp-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 100px;
+      border: 1px solid rgba(22,35,71,.10);
+      background: white;
+    }
+    .bp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    .fade-up {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 600ms ease, transform 600ms cubic-bezier(.34,1.56,.64,1);
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .delay-100 { transition-delay: 100ms; }
+    .delay-200 { transition-delay: 200ms; }
+    .delay-300 { transition-delay: 300ms; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     NAV
+══════════════════════════════════════════ -->
+<header style="position:sticky;top:0;z-index:100;background:rgba(244,246,250,.90);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(22,35,71,.08);">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:72px;">
+    <a href="index.html" style="display:flex;align-items:center;gap:12px;text-decoration:none;" aria-label="Ron Cueto — Home">
+      <img src="brand_assets/rc-logo.png" alt="RC" style="height:34px;width:auto;" />
+      <span style="font-family:'Inter',sans-serif;line-height:1.2;">
+        <span style="display:block;font-weight:600;font-size:15px;color:var(--deep-navy);">Ron Cueto</span>
+        <span style="display:block;font-weight:400;font-size:10.5px;color:var(--cool-gray);letter-spacing:.08em;text-transform:uppercase;">Senior Product Designer</span>
+      </span>
+    </a>
+    <nav style="display:flex;align-items:center;gap:32px;">
+      <a href="index.html#work"     class="nav-link">Work</a>
+      <a href="index.html#services" class="nav-link">Services</a>
+      <a href="index.html#about"    class="nav-link">About</a>
+      <a href="index.html#contact"  class="btn-primary" style="padding:10px 22px;font-size:14px;">Let's talk</a>
+    </nav>
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="grain" style="background:var(--deep-navy);position:relative;overflow:hidden;padding:80px 0 0;">
+  <div style="position:absolute;inset:0;background:
+    radial-gradient(ellipse 55% 75% at 70% 55%, rgba(76,111,165,.32) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 60% at 8%  80%, rgba(51,75,112,.50) 0%,transparent 55%),
+    radial-gradient(ellipse 30% 40% at 95% 8%,  rgba(76,111,165,.18) 0%,transparent 50%);"></div>
+
+  <div class="container" style="position:relative;z-index:2;">
+
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:40px;">
+      <a href="index.html" style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);text-decoration:none;transition:color 180ms ease;" onmouseenter="this.style.color='rgba(244,246,250,.75)'" onmouseleave="this.style.color='rgba(244,246,250,.45)'">Portfolio</a>
+      <span style="font-size:13px;color:rgba(244,246,250,.25);">/</span>
+      <span style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);">Case Study</span>
+      <span style="font-size:13px;color:rgba(244,246,250,.25);">/</span>
+      <span style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.65);">Global TV · Responsive Web</span>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+      <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.75);text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:100px;border:1px solid rgba(76,111,165,.40);background:rgba(76,111,165,.15);">Responsive Design</span>
+      <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.75);text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:100px;border:1px solid rgba(76,111,165,.40);background:rgba(76,111,165,.15);">Design Systems</span>
+      <span style="font-family:'Inter',sans-serif;font-size:11px;color:rgba(244,246,250,.45);text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:100px;border:1px solid rgba(244,246,250,.12);">Global TV · Corus Entertainment</span>
+    </div>
+
+    <h1 style="font-size:clamp(34px,4.5vw,60px);line-height:1.08;color:var(--off-white);max-width:860px;margin-bottom:32px;">
+      Making Streaming Seamless<br>
+      <em style="color:rgba(76,111,165,.90);">Across Every Screen</em>
+    </h1>
+
+    <div style="display:flex;gap:32px;flex-wrap:wrap;margin-bottom:64px;padding-bottom:64px;border-bottom:1px solid rgba(244,246,250,.08);">
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Role</div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.75);">Senior Product Designer</div>
+      </div>
+      <div style="width:1px;background:rgba(244,246,250,.08);"></div>
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Platforms</div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.75);">Desktop · Laptop · Tablet · Mobile Web</div>
+      </div>
+      <div style="width:1px;background:rgba(244,246,250,.08);"></div>
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Breakpoints</div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.75);">1440 · 1024 · 768 · Mobile</div>
+      </div>
+      <div style="width:1px;background:rgba(244,246,250,.08);"></div>
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Tools</div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.75);">Figma · Variables · Prototypes</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="position:relative;z-index:2;">
+    <div style="border-radius:20px 20px 0 0;overflow:hidden;box-shadow:0 -8px 48px rgba(0,0,0,.32);">
+      <img src="case-studies/globaltv-Responsive/current-state-1024x923.png"
+           alt="Global TV web platform shown across desktop browser, tablet, and mobile — illustrating the responsive design challenge before the redesign"
+           style="width:100%;display:block;" />
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     OVERVIEW
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:white;">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;">
+
+      <div class="fade-up">
+        <p class="eyebrow" style="margin-bottom:16px;">Overview</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);margin-bottom:24px;">
+          One experience.<br>Every screen size.
+        </h2>
+        <p style="font-family:'Inter',sans-serif;font-size:16px;color:var(--cool-gray);line-height:1.75;margin-bottom:16px;">
+          Global TV's streaming web platform had grown from a desktop-first codebase with no systematic approach to responsive design. The mobile app had a well-established design system — but translating that to browser contexts across multiple viewport widths required more than scaling components down.
+        </p>
+        <p style="font-family:'Inter',sans-serif;font-size:16px;color:var(--cool-gray);line-height:1.75;">
+          I led the responsive web redesign: establishing a breakpoint system using Figma variables, adapting every core component and page template across Desktop (1440px), Laptop (1024px), Tablet (768px), and Mobile — then shipping developer-ready documentation covering grids, typography, components, and interaction patterns.
+        </p>
+      </div>
+
+      <div class="fade-up delay-100" style="display:grid;gap:16px;">
+        <div style="background:var(--off-white);border-radius:14px;padding:24px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--deep-navy);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">The challenge</div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">The web platform had no systematic breakpoint strategy. Components weren't designed to adapt — they were desktop-sized, degrading at smaller widths. Mobile web users encountered a scaled-down desktop experience, not a purpose-built one.</p>
+        </div>
+        <div style="background:var(--off-white);border-radius:14px;padding:24px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--deep-navy);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">My approach</div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">Breakpoint variables in Figma → component-by-component responsive adaptation → full page templates at every breakpoint → annotated dev-ready documentation covering grids, typography, navigation, and key interaction flows.</p>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--deep-navy);border-radius:14px;padding:24px;text-align:center;">
+            <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:36px;color:var(--off-white);letter-spacing:-0.03em;">4</div>
+            <div style="font-family:'Inter',sans-serif;font-size:12px;color:rgba(244,246,250,.55);margin-top:6px;line-height:1.4;">Breakpoints designed across</div>
+          </div>
+          <div style="background:var(--steel-blue);border-radius:14px;padding:24px;text-align:center;">
+            <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:36px;color:white;letter-spacing:-0.03em;">5+</div>
+            <div style="font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,.65);margin-top:6px;line-height:1.4;">Page templates delivered</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     THE PROBLEM
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:var(--off-white);">
+  <div class="container-text">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;"><div class="section-num">01</div></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">The Problem</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);margin-bottom:24px;">
+          A desktop site on<br>every screen.
+        </h2>
+      </div>
+    </div>
+
+    <div class="fade-up" style="display:grid;gap:24px;">
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        The Global TV web platform had been built and extended over time without a unified breakpoint strategy. On desktop it looked polished — but on a laptop, tablet, or phone, users encountered layouts that either overflowed, scaled disproportionately, or simply didn't adapt at all.
+      </p>
+      <div class="callout">
+        <p style="font-family:'Playfair Display',serif;font-size:20px;line-height:1.45;color:var(--deep-navy);font-style:italic;">
+          "How might we give web users the same quality of streaming experience as the native app — regardless of the device they're watching on?"
+        </p>
+      </div>
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        The gap wasn't just visual. Without responsive layouts, key interactions — navigation, content discovery, sign-in flows — required disproportionate effort on smaller screens. The mobile app had done the hard work of defining the right patterns for small viewports; the web platform needed to learn from that, not ignore it.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;">
+        <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid rgba(22,35,71,.07);display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--steel-blue);margin-top:6px;flex-shrink:0;"></div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">No breakpoint system — components designed only at desktop width</p>
+        </div>
+        <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid rgba(22,35,71,.07);display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--steel-blue);margin-top:6px;flex-shrink:0;"></div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">Navigation, rotators, and swimlanes degraded at tablet and mobile widths</p>
+        </div>
+        <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid rgba(22,35,71,.07);display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--steel-blue);margin-top:6px;flex-shrink:0;"></div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">No developer documentation for responsive behaviour — each breakpoint was guesswork</p>
+        </div>
+        <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid rgba(22,35,71,.07);display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--steel-blue);margin-top:6px;flex-shrink:0;"></div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">Mobile app had strong patterns that weren't being referenced or adapted for web</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     SYSTEM & STRUCTURE
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:white;">
+  <div class="container">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;"><div class="section-num">02</div></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">System &amp; Structure</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);">
+          Variables before<br>visuals.
+        </h2>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:80px;">
+      <div class="fade-up">
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Step 1</span>
+        </div>
+        <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:22px;color:var(--deep-navy);margin-bottom:16px;letter-spacing:-0.01em;">Breakpoint variables in Figma</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;margin-bottom:16px;">
+          Before touching any page design, I defined the breakpoint system using Figma Variables — encoding the grid spec for each viewport directly into the file. Desktop at 1440px with 80px margins, Laptop at 1024px with 48px, Tablet at 768px with 32px.
+        </p>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;margin-bottom:28px;">
+          This meant every component and template was built against a shared, testable source of truth — not individual designer judgement. Switching breakpoints in Figma immediately reflowed anything tied to the variables.
+        </p>
+
+        <!-- Breakpoint pills -->
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="bp-pill">
+            <div class="bp-dot" style="background:var(--steel-blue);"></div>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--deep-navy);min-width:80px;">Desktop</span>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);">1440px · 80px margin</span>
+          </div>
+          <div class="bp-pill">
+            <div class="bp-dot" style="background:#6B8FC4;"></div>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--deep-navy);min-width:80px;">Laptop</span>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);">1024px · 48px margin</span>
+          </div>
+          <div class="bp-pill">
+            <div class="bp-dot" style="background:#8FAFD8;"></div>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--deep-navy);min-width:80px;">Tablet</span>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);">768px · 32px margin</span>
+          </div>
+          <div class="bp-pill">
+            <div class="bp-dot" style="background:var(--cool-gray);"></div>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--deep-navy);min-width:80px;">Mobile</span>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);">375px · 16px margin</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fade-up delay-100 img-frame-dark">
+        <img src="case-studies/globaltv-Responsive/variables-pages-1024x612.png"
+             alt="Figma file structure showing breakpoint variables (Desktop 1440, Laptop 1024, Tablet 768), Components + Styles documentation sidebar, and Templates/Prototypes page list"
+             style="width:100%;display:block;" />
+      </div>
+    </div>
+
+    <!-- File architecture -->
+    <div class="fade-up">
+      <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+        <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Step 2</span>
+      </div>
+      <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:22px;color:var(--deep-navy);margin-bottom:16px;letter-spacing:-0.01em;">Figma file architecture</h3>
+      <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;margin-bottom:32px;max-width:640px;">
+        The file was structured to serve both design and engineering — documentation pages for foundations, component pages for each pattern, and template pages covering every key screen. Prototypes were built separately for navigation, tablet, and mobile flows so developers could reference behaviour, not just layout.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <div style="background:var(--off-white);border-radius:14px;padding:28px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--deep-navy);text-transform:uppercase;letter-spacing:.07em;margin-bottom:16px;">Components &amp; Documentation</div>
+          <div style="display:grid;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:8px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-size:11px;color:var(--cool-gray);">→</span>
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--deep-navy);">Grids · Typography · Colour</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:8px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-size:11px;color:var(--cool-gray);">→</span>
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--deep-navy);">Navigation · Rotator</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:8px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-size:11px;color:var(--cool-gray);">→</span>
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--deep-navy);">Collections · Show Hero</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:8px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-size:11px;color:var(--cool-gray);">→</span>
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--deep-navy);">BDU Authorization · ConnTV</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:var(--off-white);border-radius:14px;padding:28px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--deep-navy);text-transform:uppercase;letter-spacing:.07em;margin-bottom:16px;">Templates &amp; Prototypes</div>
+          <div style="display:grid;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:8px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-size:11px;color:var(--cool-gray);">◆</span>
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--deep-navy);">Home · Shows · Live TV</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:8px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-size:11px;color:var(--cool-gray);">◆</span>
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--deep-navy);">BDU Authorization</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:8px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-size:11px;color:var(--cool-gray);">→</span>
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--deep-navy);">Navigation Prototype</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:white;border-radius:8px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-size:11px;color:var(--cool-gray);">→</span>
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--deep-navy);">Tablet + Mobile Prototypes</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     PAGE TEMPLATES
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:var(--off-white);">
+  <div class="container">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;"><div class="section-num">03</div></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">Page Templates</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);">
+          Every page.<br>Every width.
+        </h2>
+      </div>
+    </div>
+
+    <!-- Home page -->
+    <div style="margin-bottom:80px;">
+      <div class="fade-up" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+            <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Template 1</span>
+          </div>
+          <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:20px;color:var(--deep-navy);letter-spacing:-0.01em;">Home Page</h3>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--slate);padding:4px 10px;border-radius:100px;border:1px solid rgba(22,35,71,.12);background:white;">Desktop</span>
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--slate);padding:4px 10px;border-radius:100px;border:1px solid rgba(22,35,71,.12);background:white;">Tablet</span>
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--slate);padding:4px 10px;border-radius:100px;border:1px solid rgba(22,35,71,.12);background:white;">Mobile</span>
+        </div>
+      </div>
+      <div class="fade-up img-frame-dark" style="padding:32px 32px 0;">
+        <img src="case-studies/globaltv-Responsive/Home-scaled.png"
+             alt="Global TV Home page at three breakpoints — Desktop (1440px), Tablet (768px), and Mobile — showing the hero rotator, channel swimlane, and content rows adapting across widths"
+             style="width:100%;display:block;border-radius:8px 8px 0 0;" />
+      </div>
+      <div class="fade-up" style="margin-top:20px;padding:20px 24px;background:white;border-radius:12px;border:1px solid rgba(22,35,71,.07);">
+        <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">The hero rotator collapses from a full-bleed widescreen layout to a vertically stacked card at mobile width. The channel swimlane reflows from a horizontal scroll row to a compact grid. Content collection swimlanes maintain their horizontal scroll behaviour at all breakpoints — reducing card size and gutter while preserving the browse-forward motion.</p>
+      </div>
+    </div>
+
+    <!-- Shows page -->
+    <div>
+      <div class="fade-up" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:12px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+            <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Template 2</span>
+          </div>
+          <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:20px;color:var(--deep-navy);letter-spacing:-0.01em;">Shows Page</h3>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--slate);padding:4px 10px;border-radius:100px;border:1px solid rgba(22,35,71,.12);background:white;">Desktop</span>
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--slate);padding:4px 10px;border-radius:100px;border:1px solid rgba(22,35,71,.12);background:white;">Tablet</span>
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--slate);padding:4px 10px;border-radius:100px;border:1px solid rgba(22,35,71,.12);background:white;">Mobile</span>
+        </div>
+      </div>
+      <div class="fade-up delay-100 img-frame-dark" style="padding:32px 32px 0;">
+        <img src="case-studies/globaltv-Responsive/Show-scaled.png"
+             alt="Global TV Shows browse page at Desktop, Tablet, and Mobile — showing the channel filter strip, show grid, and inline Show Detail hero adapting across breakpoints"
+             style="width:100%;display:block;border-radius:8px 8px 0 0;" />
+      </div>
+      <div class="fade-up delay-100" style="margin-top:20px;padding:20px 24px;background:white;border-radius:12px;border:1px solid rgba(22,35,71,.07);">
+        <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">The channel filter strip compresses from a wide horizontal scroll to a compact, icon-first strip at smaller breakpoints. The show grid reduces from a five-column layout at desktop to a two-column grid at mobile. The inline Show Detail hero — when a title is selected — adapts its split layout into a stacked card, keeping the CTA above the fold at every width.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     INTERACTION DETAILS
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:white;">
+  <div class="container">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;"><div class="section-num">04</div></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">Interaction Details</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);">
+          The flows that<br>had to work everywhere.
+        </h2>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div style="margin-bottom:80px;">
+      <div class="fade-up" style="margin-bottom:24px;">
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:16px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Detail 1</span>
+        </div>
+        <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:22px;color:var(--deep-navy);margin-bottom:14px;letter-spacing:-0.01em;">Mobile Navigation</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;max-width:680px;">
+          Desktop navigation — a persistent horizontal bar with labelled items — doesn't translate to mobile. I designed a three-state mobile nav pattern: collapsed icon-bar, full-screen drawer on hamburger tap, and the sign-in modal flow. The drawer gives breathing room for the five primary navigation items without sacrificing screen real estate when it isn't needed.
+        </p>
+      </div>
+      <div class="fade-up img-frame" style="padding:32px;background:#F4F6FA;">
+        <img src="case-studies/globaltv-Responsive/Mobile-Navigation-1024x546.png"
+             alt="Mobile navigation three states: collapsed header with hamburger icon, full-screen drawer with HOME/SHOWS/FREEPLAY/NEWS/LIVE TV, and SIGN IN modal (Step 1 of 3) with channel tiles"
+             style="width:100%;display:block;border-radius:8px;" />
+      </div>
+
+      <div class="fade-up" style="margin-top:24px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div style="background:var(--off-white);border-radius:10px;padding:20px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">State 1 — Default</div>
+          <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);line-height:1.6;">Compact header with Global TV logo, search, profile icons, and hamburger. Full content area preserved below.</p>
+        </div>
+        <div style="background:var(--off-white);border-radius:10px;padding:20px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">State 2 — Drawer open</div>
+          <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);line-height:1.6;">Full-screen nav overlay. Active item underlined in Global TV red. Close (×) replaces hamburger. Items: HOME · SHOWS · FREEPLAY · NEWS · LIVE TV.</p>
+        </div>
+        <div style="background:var(--off-white);border-radius:10px;padding:20px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">State 3 — Sign in</div>
+          <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);line-height:1.6;">3-step modal flow with progress indicator. Channel grid preview establishes what the user gains by signing in. STACKTV upsell positioned at foot.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- BDU Authorization -->
+    <div>
+      <div class="fade-up" style="margin-bottom:24px;">
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:16px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Detail 2</span>
+        </div>
+        <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:22px;color:var(--deep-navy);margin-bottom:14px;letter-spacing:-0.01em;">BDU Authorization Flow</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;max-width:680px;">
+          BDU (Broadcast Distribution Undertaking) authentication — required for users signing in with a cable provider — was a complex multi-step flow that needed to work cleanly across desktop, tablet, and mobile. The modal-based flow adapts its layout at each breakpoint while keeping the step count and copy identical, so the authentication experience is consistent regardless of where a user is streaming from.
+        </p>
+      </div>
+      <div class="fade-up delay-100 img-frame-dark" style="padding:32px;">
+        <img src="case-studies/globaltv-Responsive/BDU-scaled.png"
+             alt="BDU Authorization flow across Desktop, Tablet, and Mobile breakpoints — showing the multi-step sign-in modal adapting its layout while keeping the same channel grid and STACKTV upsell at each width"
+             style="width:100%;display:block;border-radius:8px;" />
+      </div>
+      <div class="fade-up delay-100" style="margin-top:20px;">
+        <div class="callout">
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">
+            <strong style="color:var(--deep-navy);">Engineering note:</strong> The BDU modal was one of the more complex flows to spec — the channel provider grid needed to scroll within the modal without the modal itself scrolling on the page. Each breakpoint had explicit max-height, scroll behaviour, and modal dismiss rules documented for the dev handoff.
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     OUTCOMES
+══════════════════════════════════════════ -->
+<section class="grain" style="padding:96px 0;background:var(--deep-navy);position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:
+    radial-gradient(ellipse 60% 80% at 80% 50%, rgba(76,111,165,.25) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 60% at 10% 60%, rgba(51,75,112,.40) 0%,transparent 55%);"></div>
+
+  <div class="container" style="position:relative;z-index:2;">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;">
+        <div style="font-family:'Playfair Display',serif;font-size:72px;font-weight:700;color:rgba(244,246,250,.06);line-height:1;letter-spacing:-0.04em;user-select:none;">05</div>
+      </div>
+      <div>
+        <p class="eyebrow" style="color:var(--steel-blue);margin-bottom:16px;">Outcomes</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--off-white);">
+          From guesswork<br>to a documented system.
+        </h2>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:64px;">
+
+      <div class="metric-card fade-up" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);">
+        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:48px;color:var(--off-white);letter-spacing:-0.03em;margin-bottom:12px;">4</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:15px;color:rgba(244,246,250,.80);margin-bottom:8px;">Breakpoints fully specced</div>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);line-height:1.65;">Desktop through mobile, each with its own grid, margin, and component behaviour — defined in Figma variables and documented for engineering.</p>
+      </div>
+
+      <div class="metric-card fade-up delay-100" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);">
+        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:48px;color:var(--off-white);letter-spacing:-0.03em;margin-bottom:12px;">5+</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:15px;color:rgba(244,246,250,.80);margin-bottom:8px;">Page templates delivered</div>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);line-height:1.65;">Home, Shows, Live TV, BDU Authorization, and Search — each designed at all breakpoints with pixel-accurate component specs and annotated dev notes.</p>
+      </div>
+
+      <div class="metric-card fade-up delay-200" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);">
+        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:48px;color:var(--off-white);letter-spacing:-0.03em;margin-bottom:12px;">3</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:15px;color:rgba(244,246,250,.80);margin-bottom:8px;">Prototypes built for dev</div>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);line-height:1.65;">Navigation, Tablet, and Mobile prototypes — interactive references developers could explore to understand behaviour, not just read a static spec sheet.</p>
+      </div>
+
+    </div>
+
+    <div class="fade-up" style="max-width:720px;margin:0 auto;text-align:center;">
+      <div style="font-family:'Playfair Display',serif;font-size:72px;line-height:.9;color:var(--steel-blue);margin-bottom:24px;opacity:.65;">"</div>
+      <blockquote style="font-family:'Playfair Display',serif;font-size:clamp(18px,2vw,24px);line-height:1.45;color:var(--off-white);margin:0 0 32px;font-style:italic;">
+        Responsive design isn't a final state — it's a commitment to never making a user feel like a second-class citizen because of the device in their hand.
+      </blockquote>
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;">
+        <img src="brand_assets/rc-logo.png" alt="RC" style="width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--slate);padding:7px;filter:invert(1) brightness(2) opacity(0.5);" />
+        <div style="text-align:left;">
+          <div style="font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--off-white);">Ron Cueto</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;color:rgba(244,246,250,.40);">Reflecting on the Global TV responsive web project</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     REFLECTION
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:white;">
+  <div class="container-text">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;"><div class="section-num">06</div></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">Reflection</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);">
+          What I'd carry forward.
+        </h2>
+      </div>
+    </div>
+
+    <div class="fade-up" style="display:grid;gap:24px;">
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        Using Figma Variables for breakpoints — rather than separate frames or duplicated components — changed how the whole design conversation worked. Switching a page from desktop to tablet was a variable toggle, not a rebuild. That speed made iteration feel cheap, which meant the team explored more layout directions before settling.
+      </p>
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        The bigger insight was about documentation scope. <strong style="color:var(--deep-navy);">Shipping prototypes alongside static specs is the difference between a dev team that references your work and one that ignores it.</strong> Engineers could click through the navigation prototype and experience the drawer animation rather than reading a description of it — that made implementation discussions far more precise.
+      </p>
+      <div class="callout" style="margin-top:8px;">
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">What I'd do next</div>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--slate);line-height:1.7;">
+          Introduce a formal component testing step using real content at each breakpoint before finalising specs — specifically for the channel swimlane and BDU grid, which are the most content-variable components. Catching overflow and truncation edge cases in Figma is faster than catching them in code review.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     NEXT PROJECT CTA
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:var(--off-white);">
+  <div class="container">
+    <div class="fade-up" style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+
+      <a href="index.html#work" style="display:block;background:white;border-radius:20px;padding:40px;border:1px solid rgba(22,35,71,.08);box-shadow:0 4px 16px rgba(22,35,71,.07);text-decoration:none;transition:transform 300ms cubic-bezier(.34,1.56,.64,1),box-shadow 300ms ease;" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 32px rgba(22,35,71,.13)'" onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(22,35,71,.07)'">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <svg width="14" height="14" fill="none" viewBox="0 0 16 16"><path d="M13 8H3M7 4l-4 4 4 4" stroke="#4C6FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">All work</span>
+        </div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:24px;color:var(--deep-navy);margin-bottom:8px;">Back to portfolio</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.65;">Browse all case studies across streaming, design systems, and enterprise SaaS.</p>
+      </a>
+
+      <a href="globaltv-show-detail.html" style="display:block;background:var(--deep-navy);border-radius:20px;padding:40px;text-decoration:none;position:relative;overflow:hidden;transition:transform 300ms cubic-bezier(.34,1.56,.64,1),box-shadow 300ms ease;box-shadow:0 8px 28px rgba(22,35,71,.22);" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 40px rgba(22,35,71,.30)'" onmouseleave="this.style.transform='';this.style.boxShadow='0 8px 28px rgba(22,35,71,.22)'">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 80% 20%,rgba(76,111,165,.30) 0%,transparent 60%);"></div>
+        <div style="position:relative;z-index:1;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <span style="font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Next case study</span>
+            <svg width="14" height="14" fill="none" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="#4C6FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:24px;color:var(--off-white);margin-bottom:8px;">Redesigning the Show Detail Page</h3>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.55);line-height:1.65;">Global TV · Web · iOS · Android</p>
+          <div style="display:flex;gap:8px;margin-top:20px;">
+            <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.65);padding:3px 10px;border-radius:100px;border:1px solid rgba(244,246,250,.15);">UX Research</span>
+            <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.65);padding:3px 10px;border-radius:100px;border:1px solid rgba(244,246,250,.15);">Product Design</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer style="background:white;border-top:1px solid rgba(22,35,71,.08);padding:32px 0;">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="brand_assets/rc-logo.png" alt="" style="height:26px;width:auto;opacity:.45;" />
+      <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);">© 2025 Ron Cueto. All rights reserved.</span>
+    </div>
+    <nav style="display:flex;gap:28px;">
+      <a href="index.html#work"          class="nav-link" style="font-size:13px;">Work</a>
+      <a href="index.html#about"         class="nav-link" style="font-size:13px;">About</a>
+      <a href="mailto:work@roncueto.com" class="nav-link" style="font-size:13px;">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+
+<script>
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.06, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>

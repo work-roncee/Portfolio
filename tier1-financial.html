@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unified Design System for Enterprise Finance — Ron Cueto</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    :root {
+      --deep-navy:  #162347;
+      --slate:      #334B70;
+      --steel-blue: #4C6FA5;
+      --cool-gray:  #8E97A6;
+      --off-white:  #F4F6FA;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--off-white);
+      color: var(--deep-navy);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 { font-family: 'Playfair Display', serif; letter-spacing: -0.03em; }
+
+    /* ── Grain ── */
+    .grain { position: relative; }
+    .grain::after {
+      content: '';
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 1;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23g)' opacity='0.055'/%3E%3C/svg%3E");
+      background-size: 320px;
+    }
+
+    /* ── Container ── */
+    .container      { max-width: 1280px; margin: 0 auto; padding: 0 32px; }
+    .container-text { max-width: 760px;  margin: 0 auto; padding: 0 32px; }
+
+    /* ── Nav link ── */
+    .nav-link {
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+      color: var(--slate); text-decoration: none; position: relative;
+      padding-bottom: 2px; transition: color 180ms ease;
+    }
+    .nav-link::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      width: 0; height: 1.5px; background: var(--steel-blue);
+      transition: width 220ms cubic-bezier(.34,1.56,.64,1);
+    }
+    .nav-link:hover { color: var(--deep-navy); }
+    .nav-link:hover::after { width: 100%; }
+    .nav-link:focus-visible { outline: 2px solid var(--steel-blue); outline-offset: 3px; border-radius: 2px; }
+
+    /* ── Buttons ── */
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 13px 26px; background: var(--deep-navy); color: var(--off-white);
+      font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px;
+      border-radius: 8px; text-decoration: none; border: none; cursor: pointer;
+      transition: transform 220ms cubic-bezier(.34,1.56,.64,1), box-shadow 220ms ease;
+      box-shadow: 0 4px 18px rgba(22,35,71,.22);
+    }
+    .btn-primary:hover  { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(22,35,71,.30); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:focus-visible { outline: 2px solid var(--steel-blue); outline-offset: 3px; }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; background: transparent; color: var(--deep-navy);
+      font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px;
+      border-radius: 8px; border: 1.5px solid rgba(22,35,71,.20); text-decoration: none;
+      transition: transform 220ms cubic-bezier(.34,1.56,.64,1), border-color 180ms ease, background 180ms ease;
+    }
+    .btn-ghost:hover  { transform: translateY(-2px); border-color: var(--deep-navy); background: rgba(22,35,71,.04); }
+    .btn-ghost:active { transform: translateY(0); }
+    .btn-ghost:focus-visible { outline: 2px solid var(--steel-blue); outline-offset: 3px; }
+
+    /* ── Tags ── */
+    .tag-blue { font-family:'Inter',sans-serif; font-size:11px; font-weight:500; color:var(--steel-blue); text-transform:uppercase; letter-spacing:.08em; padding:4px 10px; border-radius:100px; background:rgba(76,111,165,.10); }
+    .tag-gray { font-family:'Inter',sans-serif; font-size:11px; color:var(--cool-gray); text-transform:uppercase; letter-spacing:.08em; padding:4px 10px; border-radius:100px; background:rgba(142,151,166,.10); }
+
+    /* ── Eyebrow ── */
+    .eyebrow { font-family:'Inter',sans-serif; font-size:12px; font-weight:500; color:var(--steel-blue); text-transform:uppercase; letter-spacing:.10em; }
+
+    /* ── Section divider ── */
+    .section-num {
+      font-family: 'Playfair Display', serif; font-size: 72px; font-weight: 700;
+      color: rgba(22,35,71,.05); line-height: 1; letter-spacing: -0.04em;
+      user-select: none; pointer-events: none;
+    }
+
+    /* ── Metric card ── */
+    .metric-card {
+      background: white; border-radius: 16px; padding: 32px;
+      border: 1px solid rgba(22,35,71,.07);
+      box-shadow: 0 4px 16px rgba(22,35,71,.08), 0 1px 4px rgba(22,35,71,.04);
+    }
+
+    /* ── Image frame ── */
+    .img-frame {
+      background: #E8ECF2; border-radius: 16px; overflow: hidden;
+      box-shadow: 0 8px 32px rgba(22,35,71,.14), 0 2px 8px rgba(22,35,71,.08);
+    }
+    .img-frame-dark {
+      background: #1A2640; border-radius: 16px; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,.30), 0 2px 8px rgba(0,0,0,.16);
+    }
+
+    /* ── Callout ── */
+    .callout {
+      border-left: 3px solid var(--steel-blue);
+      padding: 20px 24px; background: rgba(76,111,165,.06);
+      border-radius: 0 12px 12px 0;
+    }
+
+    /* ── Fade up ── */
+    .fade-up {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 600ms ease, transform 600ms cubic-bezier(.34,1.56,.64,1);
+    }
+    .fade-up.visible { opacity: 1; transform: translateY(0); }
+    .delay-100 { transition-delay: 100ms; }
+    .delay-200 { transition-delay: 200ms; }
+    .delay-300 { transition-delay: 300ms; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     NAV
+══════════════════════════════════════════ -->
+<header style="position:sticky;top:0;z-index:100;background:rgba(244,246,250,.90);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(22,35,71,.08);">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;height:72px;">
+
+    <a href="index.html" style="display:flex;align-items:center;gap:12px;text-decoration:none;" aria-label="Ron Cueto — Home">
+      <img src="brand_assets/rc-logo.png" alt="RC" style="height:34px;width:auto;" />
+      <span style="font-family:'Inter',sans-serif;line-height:1.2;">
+        <span style="display:block;font-weight:600;font-size:15px;color:var(--deep-navy);">Ron Cueto</span>
+        <span style="display:block;font-weight:400;font-size:10.5px;color:var(--cool-gray);letter-spacing:.08em;text-transform:uppercase;">Senior Product Designer</span>
+      </span>
+    </a>
+
+    <nav style="display:flex;align-items:center;gap:32px;">
+      <a href="index.html#work"     class="nav-link">Work</a>
+      <a href="index.html#services" class="nav-link">Services</a>
+      <a href="index.html#about"    class="nav-link">About</a>
+      <a href="index.html#contact"  class="btn-primary" style="padding:10px 22px;font-size:14px;">Let's talk</a>
+    </nav>
+  </div>
+</header>
+
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="grain" style="background:var(--deep-navy);position:relative;overflow:hidden;padding:80px 0 0;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 70% 60%,rgba(76,111,165,.30) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 10% 80%,rgba(51,75,112,.45) 0%,transparent 55%);"></div>
+
+  <div class="container" style="position:relative;z-index:2;">
+
+    <!-- Breadcrumb -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:40px;">
+      <a href="index.html" style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);text-decoration:none;transition:color 180ms ease;" onmouseenter="this.style.color='rgba(244,246,250,.75)'" onmouseleave="this.style.color='rgba(244,246,250,.45)'">Portfolio</a>
+      <span style="font-size:13px;color:rgba(244,246,250,.25);">/</span>
+      <span style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);">Case Study</span>
+      <span style="font-size:13px;color:rgba(244,246,250,.25);">/</span>
+      <span style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.65);">Tier1 Financial</span>
+    </div>
+
+    <!-- Tags -->
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+      <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.75);text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:100px;border:1px solid rgba(76,111,165,.40);background:rgba(76,111,165,.15);">Design Systems</span>
+      <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.75);text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:100px;border:1px solid rgba(76,111,165,.40);background:rgba(76,111,165,.15);">Enterprise SaaS</span>
+      <span style="font-family:'Inter',sans-serif;font-size:11px;color:rgba(244,246,250,.45);text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:100px;border:1px solid rgba(244,246,250,.12);background:transparent;">Tier1 Financial Solutions</span>
+    </div>
+
+    <!-- Headline -->
+    <h1 style="font-size:clamp(36px,4.5vw,60px);line-height:1.08;color:var(--off-white);max-width:820px;margin-bottom:32px;">
+      Building a Unified Design System<br>
+      <em style="color:rgba(76,111,165,.90);">for Enterprise Financial Software</em>
+    </h1>
+
+    <!-- Meta row -->
+    <div style="display:flex;gap:32px;flex-wrap:wrap;margin-bottom:64px;padding-bottom:64px;border-bottom:1px solid rgba(244,246,250,.08);">
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Role</div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.75);">Senior Product Designer</div>
+      </div>
+      <div style="width:1px;background:rgba(244,246,250,.08);"></div>
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Platforms</div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.75);">Web · Salesforce</div>
+      </div>
+      <div style="width:1px;background:rgba(244,246,250,.08);"></div>
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Team</div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.75);">Design Manager · Engineering · PMs</div>
+      </div>
+      <div style="width:1px;background:rgba(244,246,250,.08);"></div>
+      <div>
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.35);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Tools</div>
+        <div style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.75);">Figma · InVision · Slack</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cover image — bleeds into section below -->
+  <div class="container" style="position:relative;z-index:2;">
+    <div style="border-radius:20px 20px 0 0;overflow:hidden;box-shadow:0 -8px 48px rgba(0,0,0,.30);">
+      <img src="case-studies/tier1financial/T1-DesignSystem-Cover.png" alt="Tier1 Financial Design System cover — desktop web browser showing ACE Investment Calendar with data grid UI" style="width:100%;display:block;" />
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     OVERVIEW
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:white;">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:start;">
+
+      <!-- Left: Summary -->
+      <div class="fade-up">
+        <p class="eyebrow" style="margin-bottom:16px;">Overview</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);margin-bottom:24px;">
+          Fragmented tools.<br>One unified system.
+        </h2>
+        <p style="font-family:'Inter',sans-serif;font-size:16px;color:var(--cool-gray);line-height:1.75;margin-bottom:16px;">
+          Tier1 Financial Solutions serves investment banking professionals with a multi-product desktop suite. Each product had grown independently — different navigation patterns, filter components that looked similar but behaved inconsistently, and no shared colour or typography standards.
+        </p>
+        <p style="font-family:'Inter',sans-serif;font-size:16px;color:var(--cool-gray);line-height:1.75;">
+          I joined to address that fragmentation. The goal: build a consistent, scalable design foundation across Tier1's desktop products that reduces friction for users and improves delivery speed for the team.
+        </p>
+      </div>
+
+      <!-- Right: Meta cards -->
+      <div class="fade-up delay-100" style="display:grid;gap:16px;">
+
+        <div style="background:var(--off-white);border-radius:14px;padding:24px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--deep-navy);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">The challenge</div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">
+            Differing navigation patterns between products, inconsistent filter component behaviour, mismatched spacing, and no shared colour or typography standards — creating user friction and slowing delivery cycles.
+          </p>
+        </div>
+
+        <div style="background:var(--off-white);border-radius:14px;padding:24px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--deep-navy);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;">My approach</div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">
+            Comprehensive UI audit → Figma component library with master components → annotated InVision specs → developer-validated documentation across all products.
+          </p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--deep-navy);border-radius:14px;padding:24px;text-align:center;">
+            <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:36px;color:var(--off-white);letter-spacing:-0.03em;">35%</div>
+            <div style="font-family:'Inter',sans-serif;font-size:12px;color:rgba(244,246,250,.55);margin-top:6px;line-height:1.4;">Fewer steps for key tasks</div>
+          </div>
+          <div style="background:var(--steel-blue);border-radius:14px;padding:24px;text-align:center;">
+            <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:36px;color:white;letter-spacing:-0.03em;">15%</div>
+            <div style="font-family:'Inter',sans-serif;font-size:12px;color:rgba(255,255,255,.65);margin-top:6px;line-height:1.4;">Fewer compliance errors</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     THE PROBLEM
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:var(--off-white);">
+  <div class="container-text">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;">
+        <div class="section-num">01</div>
+      </div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">The Problem</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);margin-bottom:24px;">
+          Same product family.<br>Entirely different experiences.
+        </h2>
+      </div>
+    </div>
+
+    <div class="fade-up" style="display:grid;gap:24px;">
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        Investment banking professionals use Tier1's products under real pressure — managing large datasets, working across multiple platforms, and navigating compliance-sensitive workflows daily. Every inconsistency in the UI costs them time and cognitive load they can't afford.
+      </p>
+
+      <div class="callout">
+        <p style="font-family:'Playfair Display',serif;font-size:20px;line-height:1.45;color:var(--deep-navy);font-style:italic;">
+          "How might we create a consistent, scalable design foundation across Tier1's desktop products that reduces friction for users and improves delivery speed for the team?"
+        </p>
+      </div>
+
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        The specific pain points surfaced in the audit were concrete: the filter toolbar — used extensively across the ACE Investment Calendar and related products — had different states and interaction patterns depending on which product you were in. Navigation icons left of the divider switched pages; those to the right opened dropdowns within the current view. But that convention wasn't documented anywhere, so developers interpreted it differently across products.
+      </p>
+
+      <!-- Problem list -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px;">
+        <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid rgba(22,35,71,.07);display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--steel-blue);margin-top:6px;flex-shrink:0;"></div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">Differing navigation patterns between products</p>
+        </div>
+        <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid rgba(22,35,71,.07);display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--steel-blue);margin-top:6px;flex-shrink:0;"></div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">Similar-looking filter components with inconsistent behaviour</p>
+        </div>
+        <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid rgba(22,35,71,.07);display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--steel-blue);margin-top:6px;flex-shrink:0;"></div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">Inconsistent spacing with no shared token layer</p>
+        </div>
+        <div style="background:white;border-radius:12px;padding:20px 24px;border:1px solid rgba(22,35,71,.07);display:flex;gap:14px;align-items:flex-start;">
+          <div style="width:8px;height:8px;border-radius:50%;background:var(--steel-blue);margin-top:6px;flex-shrink:0;"></div>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">No shared colour or typography standards across products</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     PROCESS — AUDIT
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:white;">
+  <div class="container">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;"><div class="section-num">02</div></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">Process</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);">
+          Audit. Standardise. Document.
+        </h2>
+      </div>
+    </div>
+
+    <!-- Step 1: Audit -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:96px;">
+      <div class="fade-up">
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Step 1</span>
+        </div>
+        <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:22px;color:var(--deep-navy);margin-bottom:16px;letter-spacing:-0.01em;">UI Audit & Component Mapping</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;margin-bottom:16px;">
+          I started by reviewing every navigation bar, toolbar, filter control, and data grid across the Tier1 suite. The goal wasn't to rebuild everything — it was to identify what could be unified, what needed platform-specific variants, and where the highest-impact inconsistencies lived.
+        </p>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;">
+          The ACE Investment Calendar's filter toolbar stood out immediately. Heavy daily usage by professionals managing large datasets made it the highest-leverage component to standardise first.
+        </p>
+      </div>
+      <div class="fade-up delay-100">
+        <div style="background:var(--off-white);border-radius:16px;padding:24px;border:1px solid rgba(22,35,71,.07);">
+          <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:var(--cool-gray);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;">Audit Focus Areas</div>
+          <div style="display:grid;gap:12px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:white;border-radius:10px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-family:'Inter',sans-serif;font-size:14px;color:var(--deep-navy);font-weight:500;">Navigation bars</span>
+              <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--steel-blue);font-weight:500;background:rgba(76,111,165,.10);padding:2px 10px;border-radius:100px;">High impact</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:white;border-radius:10px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-family:'Inter',sans-serif;font-size:14px;color:var(--deep-navy);font-weight:500;">Filter toolbars</span>
+              <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--steel-blue);font-weight:500;background:rgba(76,111,165,.10);padding:2px 10px;border-radius:100px;">High impact</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:white;border-radius:10px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-family:'Inter',sans-serif;font-size:14px;color:var(--deep-navy);font-weight:500;">Data grids</span>
+              <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--cool-gray);font-weight:500;background:rgba(142,151,166,.10);padding:2px 10px;border-radius:100px;">Medium</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:white;border-radius:10px;border:1px solid rgba(22,35,71,.06);">
+              <span style="font-family:'Inter',sans-serif;font-size:14px;color:var(--deep-navy);font-weight:500;">Spacing & colour</span>
+              <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--cool-gray);font-weight:500;background:rgba(142,151,166,.10);padding:2px 10px;border-radius:100px;">Foundation</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Filter Toolbar — image left -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;margin-bottom:96px;">
+      <div class="fade-up img-frame-dark" style="order:1;">
+        <img src="case-studies/tier1financial/aic-nav-01.png"
+             alt="Figma design annotation of the ACE Investment Calendar filter toolbar — showing View Mode, Saved Search, filter inputs, Group By and Organizing Office dropdowns with 16px spacing callouts"
+             style="width:100%;display:block;" />
+      </div>
+      <div class="fade-up delay-100" style="order:2;">
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Step 2</span>
+        </div>
+        <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:22px;color:var(--deep-navy);margin-bottom:16px;letter-spacing:-0.01em;">Standardising the Filter Toolbar</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;margin-bottom:16px;">
+          The filter toolbar was used across every key view in the suite. To bring consistency, I rebuilt it as a master component in Figma — defining explicit spacing values (16px horizontal padding, 8px row gaps) and locked interaction states for each dropdown.
+        </p>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;margin-bottom:24px;">
+          Annotated InVision specs accompanied every component — colour values, background tokens, and border rules spelled out explicitly, leaving no room for developer interpretation in a compliance-regulated context.
+        </p>
+        <div class="callout">
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--slate);line-height:1.65;">
+            <strong style="color:var(--deep-navy);">V.03 Fidelity Approval</strong> — spacing documentation went through multiple review rounds with engineering to validate feasibility within the Salesforce platform constraints before sign-off.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Navigation Bar — image right -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;">
+      <div class="fade-up" style="order:1;">
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-bottom:20px;padding:4px 12px;border-radius:100px;background:rgba(76,111,165,.08);border:1px solid rgba(76,111,165,.15);">
+          <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Step 3</span>
+        </div>
+        <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:22px;color:var(--deep-navy);margin-bottom:16px;letter-spacing:-0.01em;">Documenting Navigation Behaviour</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;margin-bottom:16px;">
+          The navigation bar had an implicit convention that had never been written down: icons to the <strong style="color:var(--deep-navy);">left of the divider switch between pages</strong>; icons to the <strong style="color:var(--deep-navy);">right open dropdowns</strong> within the current view.
+        </p>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--cool-gray);line-height:1.75;margin-bottom:24px;">
+          Without that documentation, developers had built this differently across products. I worked with engineers to formally capture the rule, implement consistent active icon states (dark background on the right-side icons), and cross-reference this pattern throughout the Tier1 product suite.
+        </p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div style="background:var(--off-white);border-radius:10px;padding:16px;border:1px solid rgba(22,35,71,.07);">
+            <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Left of divider</div>
+            <div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);">Switch between pages / views</div>
+          </div>
+          <div style="background:var(--off-white);border-radius:10px;padding:16px;border:1px solid rgba(22,35,71,.07);">
+            <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Right of divider</div>
+            <div style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);">Open dropdowns in current view</div>
+          </div>
+        </div>
+      </div>
+      <div class="fade-up delay-100 img-frame" style="order:2;padding:0;">
+        <img src="case-studies/tier1financial/aic-nav-03.png"
+             alt="Figma documentation of the ACE Investment Calendar navigation bar dropdown behaviour — showing the settings cog dropdown menu with items including About, Reports, Admin Contacts, and annotations explaining left vs right of divider navigation convention"
+             style="width:100%;display:block;" />
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     DESIGN DECISIONS
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:var(--off-white);">
+  <div class="container-text">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;"><div class="section-num">03</div></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">Design Decisions</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);">
+          Explicit over implicit,<br>always.
+        </h2>
+      </div>
+    </div>
+
+    <div class="fade-up" style="display:grid;gap:32px;">
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        Enterprise SaaS design systems aren't just about visual consistency — they're about reducing cognitive load for professionals working under pressure. Every decision I made prioritised clarity and reduced room for interpretation.
+      </p>
+
+      <div style="display:grid;gap:20px;">
+
+        <div style="background:white;border-radius:16px;padding:32px;border:1px solid rgba(22,35,71,.07);box-shadow:0 4px 16px rgba(22,35,71,.06);">
+          <div style="display:flex;align-items:flex-start;gap:20px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(76,111,165,.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7" stroke="#4C6FA5" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </div>
+            <div>
+              <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:17px;color:var(--deep-navy);margin-bottom:8px;letter-spacing:-0.01em;">Explicit pixel values in every spec</h3>
+              <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">Spacing was never described as "comfortable" or "generous." Every value was documented with an exact pixel figure — 16px horizontal padding, 8px row gap — eliminating developer interpretation in a compliance-regulated environment.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:white;border-radius:16px;padding:32px;border:1px solid rgba(22,35,71,.07);box-shadow:0 4px 16px rgba(22,35,71,.06);">
+          <div style="display:flex;align-items:flex-start;gap:20px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(76,111,165,.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18" stroke="#4C6FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:17px;color:var(--deep-navy);margin-bottom:8px;letter-spacing:-0.01em;">Master components with documented states</h3>
+              <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">Each component defined default load state and active filter state separately — with explicit colour values for text, background, and border in each state. No component left the system without its full state inventory documented in InVision.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:white;border-radius:16px;padding:32px;border:1px solid rgba(22,35,71,.07);box-shadow:0 4px 16px rgba(22,35,71,.06);">
+          <div style="display:flex;align-items:flex-start;gap:20px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(76,111,165,.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="#4C6FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:17px;color:var(--deep-navy);margin-bottom:8px;letter-spacing:-0.01em;">Cross-product pattern cross-referencing</h3>
+              <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">Related products were documented with explicit cross-references. When the navigation bar divider convention was applied to one product, it was linked to every other product where the same pattern existed — ensuring no product silently diverged.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:white;border-radius:16px;padding:32px;border:1px solid rgba(22,35,71,.07);box-shadow:0 4px 16px rgba(22,35,71,.06);">
+          <div style="display:flex;align-items:flex-start;gap:20px;">
+            <div style="width:40px;height:40px;border-radius:10px;background:rgba(76,111,165,.10);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#4C6FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div>
+              <h3 style="font-family:'Inter',sans-serif;font-weight:600;font-size:17px;color:var(--deep-navy);margin-bottom:8px;letter-spacing:-0.01em;">Engineering validation before handoff</h3>
+              <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.7;">Before any component reached final documentation, I validated Salesforce platform constraints with developers. The pre-variant Figma constraint actually strengthened the system — it forced disciplined master component structure and explicit documentation rather than relying on variants to carry the communication weight.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     OUTCOMES
+══════════════════════════════════════════ -->
+<section class="grain" style="padding:96px 0;background:var(--deep-navy);position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 80% 50%,rgba(76,111,165,.25) 0%,transparent 60%),radial-gradient(ellipse 40% 60% at 10% 60%,rgba(51,75,112,.40) 0%,transparent 55%);"></div>
+
+  <div class="container" style="position:relative;z-index:2;">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;">
+        <div style="font-family:'Playfair Display',serif;font-size:72px;font-weight:700;color:rgba(244,246,250,.06);line-height:1;letter-spacing:-0.04em;user-select:none;">04</div>
+      </div>
+      <div>
+        <p class="eyebrow" style="color:var(--steel-blue);margin-bottom:16px;">Outcomes</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--off-white);">
+          Less friction.<br>Faster delivery. Fewer errors.
+        </h2>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:64px;">
+
+      <div class="metric-card fade-up" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);">
+        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:48px;color:var(--off-white);letter-spacing:-0.03em;margin-bottom:12px;">~35%</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:15px;color:rgba(244,246,250,.80);margin-bottom:8px;">Fewer steps for key tasks</div>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);line-height:1.65;">Standardised navigation and filter patterns reduced the number of interactions required for core investment calendar workflows.</p>
+      </div>
+
+      <div class="metric-card fade-up delay-100" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);">
+        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:48px;color:var(--off-white);letter-spacing:-0.03em;margin-bottom:12px;">~15%</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:15px;color:rgba(244,246,250,.80);margin-bottom:8px;">Fewer compliance errors</div>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);line-height:1.65;">Improved information hierarchy and layout consistency reduced errors in compliance-sensitive workflows where precision is non-negotiable.</p>
+      </div>
+
+      <div class="metric-card fade-up delay-200" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);">
+        <div style="font-family:'Playfair Display',serif;font-weight:700;font-size:48px;color:var(--off-white);letter-spacing:-0.03em;margin-bottom:12px;">0×</div>
+        <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:15px;color:rgba(244,246,250,.80);margin-bottom:8px;">Greenfield redesigns</div>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:rgba(244,246,250,.45);line-height:1.65;">Teams stopped designing components from scratch. Handoffs shifted from ambiguous mockups to precise, technical references ready for implementation.</p>
+      </div>
+
+    </div>
+
+    <!-- Quote -->
+    <div class="fade-up" style="max-width:720px;margin:0 auto;text-align:center;">
+      <div style="font-family:'Playfair Display',serif;font-size:72px;line-height:.9;color:var(--steel-blue);margin-bottom:24px;opacity:.65;">"</div>
+      <blockquote style="font-family:'Playfair Display',serif;font-size:clamp(18px,2vw,24px);line-height:1.45;color:var(--off-white);margin:0 0 32px;font-style:italic;">
+        Design systems in enterprise SaaS are not just about visual consistency — they're about reducing cognitive load for professionals working under pressure.
+      </blockquote>
+      <div style="display:flex;align-items:center;justify-content:center;gap:14px;">
+        <img src="brand_assets/rc-logo.png" alt="RC" style="width:40px;height:40px;border-radius:50%;object-fit:cover;background:var(--slate);padding:7px;filter:invert(1) brightness(2) opacity(0.5);" />
+        <div style="text-align:left;">
+          <div style="font-family:'Inter',sans-serif;font-weight:500;font-size:14px;color:var(--off-white);">Ron Cueto</div>
+          <div style="font-family:'Inter',sans-serif;font-size:12px;color:rgba(244,246,250,.40);">Reflecting on the Tier1 Financial project</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     REFLECTION
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:white;">
+  <div class="container-text">
+
+    <div class="fade-up" style="display:flex;align-items:flex-start;gap:32px;margin-bottom:64px;">
+      <div style="flex-shrink:0;"><div class="section-num">05</div></div>
+      <div>
+        <p class="eyebrow" style="margin-bottom:16px;">Reflection</p>
+        <h2 style="font-size:34px;line-height:1.18;color:var(--deep-navy);">
+          What I'd carry forward.
+        </h2>
+      </div>
+    </div>
+
+    <div class="fade-up" style="display:grid;gap:24px;">
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        Working without Figma's variant system — which didn't exist yet at the time — forced a level of documentation discipline that I've carried into every system project since. When you can't rely on tooling to carry the communication weight, you have to make every annotation count.
+      </p>
+      <p style="font-family:'Inter',sans-serif;font-size:17px;color:var(--cool-gray);line-height:1.75;">
+        The constraint also clarified something I've found to be true across every design system engagement: <strong style="color:var(--deep-navy);">the value of a system isn't in its visual polish — it's in how quickly it helps the team make decisions.</strong> Explicit rules, documented conventions, and validated specs are what ship products, not beautiful component libraries in isolation.
+      </p>
+
+      <div class="callout" style="margin-top:8px;">
+        <div style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;">What I'd do next</div>
+        <p style="font-family:'Inter',sans-serif;font-size:15px;color:var(--slate);line-height:1.7;">
+          Introduce design tokens to allow visual updates (colour, spacing) to propagate automatically without touching individual components. Add in-file contribution guidelines to support design team growth and reduce system debt over time.
+        </p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     NEXT PROJECT CTA
+══════════════════════════════════════════ -->
+<section style="padding:96px 0;background:var(--off-white);">
+  <div class="container">
+
+    <div class="fade-up" style="display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+
+      <!-- Back to all work -->
+      <a href="index.html#work" style="display:block;background:white;border-radius:20px;padding:40px;border:1px solid rgba(22,35,71,.08);box-shadow:0 4px 16px rgba(22,35,71,.07);text-decoration:none;transition:transform 300ms cubic-bezier(.34,1.56,.64,1),box-shadow 300ms ease;" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 32px rgba(22,35,71,.13)'" onmouseleave="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(22,35,71,.07)'">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <svg width="14" height="14" fill="none" viewBox="0 0 16 16"><path d="M13 8H3M7 4l-4 4 4 4" stroke="#4C6FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span style="font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">All work</span>
+        </div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:24px;color:var(--deep-navy);margin-bottom:8px;">Back to portfolio</h3>
+        <p style="font-family:'Inter',sans-serif;font-size:14px;color:var(--cool-gray);line-height:1.65;">Browse all five case studies across streaming, responsive design, and enterprise SaaS.</p>
+      </a>
+
+      <!-- Next project -->
+      <a href="https://www.roncueto.com/project/building-a-scalable-design-system/" target="_blank" rel="noopener" style="display:block;background:var(--deep-navy);border-radius:20px;padding:40px;text-decoration:none;position:relative;overflow:hidden;transition:transform 300ms cubic-bezier(.34,1.56,.64,1),box-shadow 300ms ease;box-shadow:0 8px 28px rgba(22,35,71,.22);" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 16px 40px rgba(22,35,71,.30)'" onmouseleave="this.style.transform='';this.style.boxShadow='0 8px 28px rgba(22,35,71,.22)'">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 80% at 80% 20%,rgba(76,111,165,.30) 0%,transparent 60%);"></div>
+        <div style="position:relative;z-index:1;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <span style="font-family:'Inter',sans-serif;font-size:12px;font-weight:500;color:var(--steel-blue);text-transform:uppercase;letter-spacing:.08em;">Next case study</span>
+            <svg width="14" height="14" fill="none" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="#4C6FA5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <h3 style="font-family:'Playfair Display',serif;font-size:24px;color:var(--off-white);margin-bottom:8px;">Building a Scalable Design System</h3>
+          <p style="font-family:'Inter',sans-serif;font-size:14px;color:rgba(244,246,250,.55);line-height:1.65;">Global TV · Web · iOS · Android · tvOS</p>
+          <div style="display:flex;gap:8px;margin-top:20px;">
+            <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.65);padding:3px 10px;border-radius:100px;border:1px solid rgba(244,246,250,.15);">Design Systems</span>
+            <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:rgba(244,246,250,.65);padding:3px 10px;border-radius:100px;border:1px solid rgba(244,246,250,.15);">4 Platforms</span>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer style="background:white;border-top:1px solid rgba(22,35,71,.08);padding:32px 0;">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="brand_assets/rc-logo.png" alt="" style="height:26px;width:auto;opacity:.45;" />
+      <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--cool-gray);">© 2025 Ron Cueto. All rights reserved.</span>
+    </div>
+    <nav style="display:flex;gap:28px;">
+      <a href="index.html#work"                    class="nav-link" style="font-size:13px;">Work</a>
+      <a href="index.html#about"                   class="nav-link" style="font-size:13px;">About</a>
+      <a href="mailto:work@roncueto.com"           class="nav-link" style="font-size:13px;">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+
+<script>
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.06, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-up').forEach(el => io.observe(el));
+</script>
+
+</body>
+</html>
