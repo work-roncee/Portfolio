@@ -71,6 +71,55 @@ function paintProgress() {
   if (c) c.textContent = `${answeredCount()} / ${QUESTIONS.length} ANSWERED`;
 }
 
+/* ── dictation (Web Speech API; button renders only where supported) ── */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function makeDictation(ta, commit) {
+  if (!SR) return null;
+  let rec = null, active = false, base = "";
+  const btn = el("button", { class: "dictate", type: "button" });
+  const paint = (label) => {
+    btn.textContent = "";
+    btn.append(el("span", { class: "tick" + (active ? " filled rec" : "") }), " " + label);
+  };
+  paint("DICTATE");
+  const stop = (label) => {
+    active = false;
+    try { rec && rec.stop(); } catch (e) { /* already stopped */ }
+    paint(label || "DICTATE");
+    commit();
+  };
+  btn.addEventListener("click", () => {
+    if (active) return stop();
+    rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = navigator.language || "en-US";
+    base = ta.value.trim() ? ta.value.replace(/\s+$/, "") + " " : "";
+    rec.onresult = (ev) => {
+      let interim = "";
+      for (let k = ev.resultIndex; k < ev.results.length; k++) {
+        const t = ev.results[k][0].transcript;
+        if (ev.results[k].isFinal) base += t.trim() + " ";
+        else interim += t;
+      }
+      ta.value = base + interim;
+      commit();
+    };
+    rec.onerror = (ev) => {
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") stop("MIC BLOCKED — ALLOW IN BROWSER");
+      else if (ev.error !== "no-speech" && ev.error !== "aborted") stop("MIC ERROR — TRY AGAIN");
+    };
+    // continuous mode pauses itself on silence; restart while still active
+    rec.onend = () => { if (active) { try { rec.start(); } catch (e) { stop(); } } };
+    try {
+      rec.start();
+      active = true;
+      paint("LISTENING — TAP TO STOP");
+    } catch (e) { stop("MIC UNAVAILABLE"); }
+  });
+  return el("div", { class: "dictate-row" }, btn);
+}
+
 /* ── views ── */
 let view = "home";
 function go(v, opts = {}) {
@@ -234,6 +283,8 @@ function renderQuestion() {
     });
     ta.addEventListener("blur", () => setAns(q.id, { v: ta.value }));
     qEl.append(ta);
+    const dict = makeDictation(ta, () => setAns(q.id, { v: ta.value }));
+    if (dict) qEl.append(dict);
   }
 
   /* optional note for choice/scale questions */
@@ -258,6 +309,8 @@ function renderQuestion() {
         });
         nta.addEventListener("blur", () => setAns(q.id, { n: nta.value }));
         block.append(nta);
+        const dict = makeDictation(nta, () => setAns(q.id, { n: nta.value }));
+        if (dict) block.append(dict);
         if (open !== "init") nta.focus();
       }
     };
