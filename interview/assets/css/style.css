@@ -200,6 +200,18 @@ textarea::placeholder,input::placeholder{color:var(--text-3)}
 textarea.answer-long{min-height:11rem}
 textarea.answer-short{min-height:5.5rem}
 
+/* dictation */
+.dictate-row{display:flex;justify-content:flex-end;margin-top:.5rem}
+.dictate{
+  background:none;border:0;cursor:pointer;padding:.35rem 0;
+  font-family:var(--mono);font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--text-3);
+}
+.dictate:hover{color:var(--accent)}
+.dictate .tick{border-color:currentColor}
+.dictate .tick.rec{background:var(--accent);border-color:var(--accent);animation:recpulse 1.2s ease-in-out infinite}
+@keyframes recpulse{0%,100%{opacity:1}50%{opacity:.25}}
+
 /* note (add detail) */
 .note-block{margin-top:1.3rem}
 .note-toggle{
